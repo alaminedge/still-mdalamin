@@ -104,7 +104,7 @@ object Store {
     // ---------- Hardcore ----------
     fun hardcoreOn() = hardcoreUntil > System.currentTimeMillis()
 
-    fun setThemeMode(m: Int) {
+    fun chooseTheme(m: Int) {
         themeMode = m.coerceIn(0, 2)
         save()
     }

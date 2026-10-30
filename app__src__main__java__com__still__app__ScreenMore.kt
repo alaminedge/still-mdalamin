@@ -84,7 +84,7 @@ fun ScreenMore(tick: Int) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(Modifier.height(12.dp))
-                Segmented(listOf("System", "Light", "Dark"), Store.themeMode) { Store.setThemeMode(it) }
+                Segmented(listOf("System", "Light", "Dark"), Store.themeMode) { Store.chooseTheme(it) }
             }
         }
 
