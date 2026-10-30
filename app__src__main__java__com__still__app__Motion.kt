@@ -175,25 +175,25 @@ fun StillLogo(logoSize: Dp = 40.dp, animate: Boolean = true) {
 
         drawCircle(
             mint.copy(alpha = 0.22f),
-            radius = 28f * k,
+            radius = 29f * k,
             center = Offset(o(54f), o(54f)),
-            style = Stroke(3.5f * k)
+            style = Stroke(4.5f * k)
         )
         drawArc(
             mint, -35f, 310f * p.value, false,
-            topLeft = Offset(o(26f), o(26f)),
-            size = Size(56f * k, 56f * k),
-            style = Stroke(4.5f * k, cap = StrokeCap.Round)
+            topLeft = Offset(o(25f), o(25f)),
+            size = Size(58f * k, 58f * k),
+            style = Stroke(6f * k, cap = StrokeCap.Round)
         )
-        drawCircle(mint.copy(alpha = fade), 2.6f * k, Offset(o(68f), o(29.75f)))
+        drawCircle(mint.copy(alpha = fade), 3.4f * k, Offset(o(68.5f), o(28.89f)))
 
         val s = Path().apply {
-            arcTo(Rect(Offset(o(54f), o(46f)), 8f * k), -40f, -230f, true)
-            arcTo(Rect(Offset(o(54f), o(62f)), 8f * k), -90f, 230f, false)
+            arcTo(Rect(Offset(o(54f), o(45.5f)), 8.5f * k), -40f, -230f, true)
+            arcTo(Rect(Offset(o(54f), o(62.5f)), 8.5f * k), -90f, 230f, false)
         }
         drawPath(
             s, mint.copy(alpha = fade),
-            style = Stroke(4.5f * k, cap = StrokeCap.Round, join = StrokeJoin.Round)
+            style = Stroke(6.5f * k, cap = StrokeCap.Round, join = StrokeJoin.Round)
         )
     }
 }
