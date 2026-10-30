@@ -173,27 +173,23 @@ fun StillLogo(logoSize: Dp = 40.dp, animate: Boolean = true) {
         fun o(v: Float) = (v - 18f) * k
         val fade = p.value
 
-        drawCircle(
-            mint.copy(alpha = 0.22f),
-            radius = 29f * k,
-            center = Offset(o(54f), o(54f)),
-            style = Stroke(4.5f * k)
-        )
+        // ring with a wide gap (starts at -28 degrees, runs 296 degrees)
         drawArc(
-            mint, -35f, 310f * p.value, false,
-            topLeft = Offset(o(25f), o(25f)),
-            size = Size(58f * k, 58f * k),
-            style = Stroke(6f * k, cap = StrokeCap.Round)
+            mint, -28f, 296f * p.value, false,
+            topLeft = Offset(o(24.5f), o(24.5f)),
+            size = Size(59f * k, 59f * k),
+            style = Stroke(7f * k, cap = StrokeCap.Round)
         )
-        drawCircle(mint.copy(alpha = fade), 3.4f * k, Offset(o(68.5f), o(28.89f)))
+        // the still point, resting in the gap
+        drawCircle(mint.copy(alpha = fade), 4.6f * k, Offset(o(68.75f), o(28.45f)))
 
         val s = Path().apply {
-            arcTo(Rect(Offset(o(54f), o(45.5f)), 8.5f * k), -40f, -230f, true)
-            arcTo(Rect(Offset(o(54f), o(62.5f)), 8.5f * k), -90f, 230f, false)
+            arcTo(Rect(Offset(o(54f), o(44.5f)), 9.5f * k), -40f, -230f, true)
+            arcTo(Rect(Offset(o(54f), o(63.5f)), 9.5f * k), -90f, 230f, false)
         }
         drawPath(
             s, mint.copy(alpha = fade),
-            style = Stroke(6.5f * k, cap = StrokeCap.Round, join = StrokeJoin.Round)
+            style = Stroke(7f * k, cap = StrokeCap.Round, join = StrokeJoin.Round)
         )
     }
 }
