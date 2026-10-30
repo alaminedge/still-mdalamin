@@ -1,5 +1,6 @@
 package com.still.app
 
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -155,25 +156,14 @@ private fun DrawerPanel(apps: List<AppItem>, onClose: () -> Unit) {
             .imePadding()
             .padding(horizontal = 20.dp)
     ) {
-        TextField(
+        SearchField(
             value = q,
             onValueChange = { q = it },
-            placeholder = { Text("Search apps") },
-            singleLine = true,
-            shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
-            keyboardActions = KeyboardActions(onGo = {
-                list.firstOrNull()?.let { Apps.launch(c, it.pkg); onClose() }
-            }),
-            colors = TextFieldDefaults.colors(
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-            )
+            modifier = Modifier.padding(top = 16.dp),
+            imeAction = ImeAction.Go,
+            onAction = { list.firstOrNull()?.let { Apps.launch(c, it.pkg); onClose() } }
         )
-        LazyColumn(Modifier.weight(1f).padding(top = 8.dp)) {
+        LazyColumn(Modifier.weight(1f).padding(top = 8.dp).nestedScroll(rememberHideKeyboardOnScroll())) {
             items(list, key = { it.pkg }) { a ->
                 Row(
                     Modifier

@@ -1,5 +1,21 @@
 package com.still.app
 
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.remember
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -201,4 +217,68 @@ fun AppPicker(apps: List<AppItem>, selected: List<String>, onToggle: (String) ->
             }
         }
     )
+}
+
+
+/**
+ * One search box used everywhere: Search key on the keyboard, a clear (x) button,
+ * no auto-capitals, and it lets go of the keyboard when you press Search/Go.
+ */
+@Composable
+fun SearchField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    placeholder: String = "Search apps",
+    imeAction: ImeAction = ImeAction.Search,
+    onAction: (() -> Unit)? = null,
+    onFocused: () -> Unit = {}
+) {
+    val focus = LocalFocusManager.current
+    val act: () -> Unit = {
+        onAction?.invoke()
+        focus.clearFocus()
+    }
+    TextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = modifier.fillMaxWidth().onFocusChanged { if (it.isFocused) onFocused() },
+        placeholder = { Text(placeholder) },
+        leadingIcon = { Icon(Icons.Default.Search, null) },
+        trailingIcon = {
+            if (value.isNotEmpty()) {
+                IconButton(onClick = { onValueChange("") }) {
+                    Icon(Icons.Default.Close, contentDescription = "Clear search")
+                }
+            }
+        },
+        singleLine = true,
+        shape = RoundedCornerShape(16.dp),
+        keyboardOptions = KeyboardOptions(
+            capitalization = KeyboardCapitalization.None,
+            keyboardType = KeyboardType.Text,
+            imeAction = imeAction
+        ),
+        keyboardActions = KeyboardActions(onSearch = { act() }, onGo = { act() }, onDone = { act() }),
+        colors = TextFieldDefaults.colors(
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        )
+    )
+}
+
+/** Attach with Modifier.nestedScroll(...): dragging the list puts the keyboard away. */
+@Composable
+fun rememberHideKeyboardOnScroll(): NestedScrollConnection {
+    val focus = LocalFocusManager.current
+    return remember(focus) {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                if (available.y != 0f) focus.clearFocus()
+                return Offset.Zero
+            }
+        }
+    }
 }

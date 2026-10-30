@@ -1,5 +1,12 @@
 package com.still.app
 
+import androidx.compose.material3.ScaffoldDefaults
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.ui.platform.LocalDensity
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -48,6 +55,11 @@ fun Root() {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var tick by remember { mutableIntStateOf(0) }
     val animOn = animationsOn()
+    // While the keyboard is up: hide the tab bar (it would float above the keyboard)
+    // and let the content sit directly on top of the keyboard.
+    val density = LocalDensity.current
+    val imeOpen = WindowInsets.ime.getBottom(density) > 0
+    val topInset = WindowInsets.systemBars.getTop(density)
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { Apps.refresh(); tick++ }
     val tabs = listOf(
         Tab("Today", Icons.Default.DateRange),
@@ -57,7 +69,9 @@ fun Root() {
     )
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = if (imeOpen) WindowInsets(0, topInset, 0, 0) else ScaffoldDefaults.contentWindowInsets,
         bottomBar = {
+            AnimatedVisibility(visible = !imeOpen) {
             NavigationBar {
                 tabs.forEachIndexed { i, t ->
                     NavigationBarItem(
@@ -68,9 +82,10 @@ fun Root() {
                     )
                 }
             }
+            }
         }
     ) { pad ->
-        Box(Modifier.fillMaxSize().padding(pad).statusBarsPadding()) {
+        Box(Modifier.fillMaxSize().padding(pad).statusBarsPadding().imePadding()) {
             Crossfade(
                 targetState = tab,
                 animationSpec = tween(if (animOn) 200 else 0),

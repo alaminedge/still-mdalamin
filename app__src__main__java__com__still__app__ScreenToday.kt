@@ -1,5 +1,7 @@
 package com.still.app
 
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.ui.text.style.TextAlign
 import android.content.Intent
 import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
@@ -46,6 +48,7 @@ import kotlinx.coroutines.withContext
 
 private val Amber = Color(0xFFE8B84A)
 private val LIMIT_CHOICES = listOf(0 to "Off", 60 to "1h", 120 to "2h", 180 to "3h", 240 to "4h", 300 to "5h", 360 to "6h", 480 to "8h")
+private const val CUSTOM = -1
 
 @Composable
 fun ScreenToday(tick: Int) {
@@ -59,6 +62,7 @@ fun ScreenToday(tick: Int) {
         value = withContext(Dispatchers.Default) { Usage.today(c, 0) }
     }
     var pickLimit by remember { mutableStateOf(false) }
+    var customLimit by remember { mutableStateOf(false) }
 
     val byPkg = apps.associateBy { it.pkg }
     val shown = if (apps.isEmpty()) usage else usage.filterKeys { byPkg.containsKey(it) }
@@ -297,13 +301,17 @@ fun ScreenToday(tick: Int) {
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    LIMIT_CHOICES.chunked(4).forEach { rowChoices ->
+                    (LIMIT_CHOICES + (CUSTOM to "Custom")).chunked(4).forEach { rowChoices ->
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             rowChoices.forEach { (mins, label) ->
+                                val isCustomValue = Store.totalLimit > 0 && LIMIT_CHOICES.none { it.first == Store.totalLimit }
                                 FilterChip(
-                                    selected = Store.totalLimit == mins,
+                                    selected = if (mins == CUSTOM) isCustomValue else Store.totalLimit == mins,
                                     onClick = {
-                                        if (Store.setTotalLimit(mins)) {
+                                        if (mins == CUSTOM) {
+                                            pickLimit = false
+                                            customLimit = true
+                                        } else if (Store.setTotalLimit(mins)) {
                                             pickLimit = false
                                         } else {
                                             toast(c, lockedMsg())
@@ -317,5 +325,60 @@ fun ScreenToday(tick: Int) {
                 }
             }
         )
+    }
+
+    if (customLimit) {
+        CustomLimitDialog(
+            initial = if (Store.totalLimit > 0) Store.totalLimit else 150,
+            onSet = { mins ->
+                if (Store.setTotalLimit(mins)) customLimit = false else toast(c, lockedMsg())
+            },
+            onCancel = { customLimit = false }
+        )
+    }
+}
+
+@Composable
+private fun CustomLimitDialog(initial: Int, onSet: (Int) -> Unit, onCancel: () -> Unit) {
+    var h by remember { mutableIntStateOf((initial / 60).coerceIn(0, 23)) }
+    var m by remember { mutableIntStateOf((initial % 60) / 5 * 5) }
+    val total = h * 60 + m
+    AlertDialog(
+        onDismissRequest = onCancel,
+        title = { Text("Custom daily limit") },
+        text = {
+            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    if (total == 0) "Pick a time" else fmtDur(total * 60_000L),
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(Modifier.height(16.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(28.dp)) {
+                    Stepper("Hours", h, { if (h > 0) h-- }, { if (h < 23) h++ })
+                    Stepper("Minutes", m, { m = if (m == 0) 55 else m - 5 }, { m = if (m == 55) 0 else m + 5 })
+                }
+            }
+        },
+        confirmButton = { TextButton(enabled = total > 0, onClick = { onSet(total) }) { Text("Set") } },
+        dismissButton = { TextButton(onClick = onCancel) { Text("Cancel") } }
+    )
+}
+
+@Composable
+private fun Stepper(label: String, value: Int, onMinus: () -> Unit, onPlus: () -> Unit) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(label.uppercase(), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.height(8.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            FilledTonalButton(onClick = onMinus, contentPadding = PaddingValues(0.dp), modifier = Modifier.size(42.dp)) { Text("−") }
+            Text(
+                "%02d".format(value),
+                style = MaterialTheme.typography.titleLarge,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.width(46.dp)
+            )
+            FilledTonalButton(onClick = onPlus, contentPadding = PaddingValues(0.dp), modifier = Modifier.size(42.dp)) { Text("+") }
+        }
     }
 }

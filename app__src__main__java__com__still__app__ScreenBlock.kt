@@ -1,5 +1,9 @@
 package com.still.app
 
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -59,8 +63,17 @@ fun ScreenBlock() {
     var sel by remember { mutableStateOf<AppItem?>(null) }
     var picking by remember { mutableStateOf<Pair<Long, Boolean>?>(null) }
     val shown = apps.filter { it.label.contains(q, true) }
+    // Apps that have any rule (blocked, focus hours or a limit) stay on top.
+    val ruled = shown.filter { (Store.modes[it.pkg] ?: 0) > 0 || (Store.limits[it.pkg] ?: 0) > 0 }
+    val ruledPkgs = ruled.map { it.pkg }.toSet()
+    val rest = shown.filter { it.pkg !in ruledPkgs }
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    val hideKb = rememberHideKeyboardOnScroll()
 
     LazyColumn(
+        state = listState,
+        modifier = Modifier.nestedScroll(hideKb),
         contentPadding = PaddingValues(20.dp, 12.dp, 20.dp, 32.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -90,50 +103,26 @@ fun ScreenBlock() {
         }
         item { SectionLabel("Apps") }
         item {
-            TextField(
+            SearchField(
                 value = q,
                 onValueChange = { q = it },
-                placeholder = { Text("Search apps") },
-                leadingIcon = { Icon(Icons.Default.Search, null) },
-                singleLine = true,
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                )
+                onFocused = {
+                    // bring the search box to the top so results stay above the keyboard
+                    scope.launch { listState.animateScrollToItem(4 + Store.schedules.size) }
+                }
             )
         }
         if (apps.isEmpty() && !Apps.loaded) {
             items(8) { SkeletonRow() }
         }
-        items(shown, key = { it.pkg }) { a ->
-            val mode = Store.modes[a.pkg] ?: 0
-            val lim = Store.limits[a.pkg] ?: 0
-            val status = buildList {
-                if (mode == 2) add("Always blocked")
-                if (mode == 1) add("Focus hours")
-                if (lim > 0) add("$lim min limit")
-            }.joinToString(" · ").ifEmpty { "Not blocked" }
-            Row(
-                Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).clickable { sel = a }.padding(vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                AppIcon(a, 44.dp)
-                Spacer(Modifier.width(14.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(a.label, style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        status,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = if (mode > 0 || lim > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Icon(Icons.Default.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+        if (ruled.isNotEmpty()) {
+            item(key = "lbl-blocked") { SectionLabel("Blocked · ${ruled.size}") }
+            items(ruled, key = { it.pkg }) { a -> BlockAppRow(a) { sel = a } }
         }
+        if (ruled.isNotEmpty() && rest.isNotEmpty()) {
+            item(key = "lbl-rest") { SectionLabel("Other apps") }
+        }
+        items(rest, key = { it.pkg }) { a -> BlockAppRow(a) { sel = a } }
     }
 
     sel?.let { a -> BlockSheet(a) { sel = null } }
@@ -259,5 +248,33 @@ private fun BlockSheet(a: AppItem, onClose: () -> Unit) {
                 }
             }
         }
+    }
+}
+
+
+@Composable
+private fun BlockAppRow(a: AppItem, onClick: () -> Unit) {
+    val mode = Store.modes[a.pkg] ?: 0
+    val lim = Store.limits[a.pkg] ?: 0
+    val status = buildList {
+        if (mode == 2) add("Always blocked")
+        if (mode == 1) add("Focus hours")
+        if (lim > 0) add("$lim min limit")
+    }.joinToString(" · ").ifEmpty { "Not blocked" }
+    Row(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).clickable { onClick() }.padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        AppIcon(a, 44.dp)
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f)) {
+            Text(a.label, style = MaterialTheme.typography.titleMedium)
+            Text(
+                status,
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (mode > 0 || lim > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Icon(Icons.Default.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

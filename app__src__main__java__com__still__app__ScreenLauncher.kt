@@ -1,5 +1,9 @@
 package com.still.app
 
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import kotlinx.coroutines.launch
 import android.content.Intent
 import android.provider.Settings
 import androidx.compose.foundation.clickable
@@ -50,8 +54,13 @@ fun ScreenLauncher(tick: Int) {
     val pinned = apps.count { Store.home[it.pkg] == 1 }
     val hidden = apps.count { Store.home[it.pkg] == 2 }
     val shown = apps.filter { it.label.contains(q, true) }
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    val hideKb = rememberHideKeyboardOnScroll()
 
     LazyColumn(
+        state = listState,
+        modifier = Modifier.nestedScroll(hideKb),
         contentPadding = PaddingValues(20.dp, 12.dp, 20.dp, 32.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -92,20 +101,10 @@ fun ScreenLauncher(tick: Int) {
         }
         item { SectionLabel("Your apps") }
         item {
-            TextField(
+            SearchField(
                 value = q,
                 onValueChange = { q = it },
-                placeholder = { Text("Search apps") },
-                leadingIcon = { Icon(Icons.Default.Search, null) },
-                singleLine = true,
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                )
+                onFocused = { scope.launch { listState.animateScrollToItem(3) } }
             )
         }
         if (apps.isEmpty() && !Apps.loaded) {
