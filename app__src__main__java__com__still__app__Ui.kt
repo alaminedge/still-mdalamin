@@ -51,6 +51,18 @@ fun fmtDur(ms: Long): String {
     return if (h > 0) "${h}h ${m % 60}m" else "${m}m"
 }
 
+/** Time remaining, e.g. "4d 23h", "1h 10m", "12m". */
+fun fmtLeft(ms: Long): String {
+    val m = ms / 60_000
+    val d = m / 1440
+    val h = (m % 1440) / 60
+    return when {
+        d > 0 -> "${d}d ${h}h"
+        h > 0 -> "${h}h ${m % 60}m"
+        else -> "${m}m"
+    }
+}
+
 fun fmtDate(ms: Long): String = SimpleDateFormat("d MMM, h:mm a", Locale.getDefault()).format(Date(ms))
 
 fun lockedMsg() = "Hardcore Mode is on until ${fmtDate(Store.hardcoreUntil)}"
@@ -70,10 +82,16 @@ fun AppIcon(a: AppItem, size: Dp = 40.dp) {
 }
 
 @Composable
-fun Header(title: String, sub: String) {
-    Column(Modifier.padding(top = 8.dp, bottom = 6.dp)) {
-        Text(title, style = MaterialTheme.typography.headlineMedium)
-        Text(sub, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+fun Header(title: String, sub: String, chip: String? = null, chipActive: Boolean = false) {
+    Row(Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 6.dp), verticalAlignment = Alignment.Top) {
+        Column(Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.headlineMedium)
+            Text(sub, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        if (chip != null) {
+            Spacer(Modifier.width(12.dp))
+            Box(Modifier.padding(top = 6.dp)) { StatusChip(chip, chipActive) }
+        }
     }
 }
 
@@ -115,7 +133,7 @@ fun Segmented(options: List<String>, selected: Int, onSelect: (Int) -> Unit) {
                     .weight(1f)
                     .clip(RoundedCornerShape(11.dp))
                     .background(if (on) MaterialTheme.colorScheme.primary else Color.Transparent)
-                    .clickable { onSelect(i) }
+                    .pressClickable { onSelect(i) }
                     .padding(vertical = 11.dp),
                 contentAlignment = Alignment.Center
             ) {

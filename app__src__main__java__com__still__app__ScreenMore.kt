@@ -47,7 +47,13 @@ fun ScreenMore(tick: Int) {
         contentPadding = PaddingValues(20.dp, 12.dp, 20.dp, 32.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        item { Header("More", "Hardcore Mode, emergency rules and background control.") }
+        item {
+            Header(
+                "More", "Hardcore Mode, emergency rules and background control.",
+                chip = if (hc) "Hardcore ${fmtLeft(Store.hardcoreLeftMs())}" else "Hardcore off",
+                chipActive = hc
+            )
+        }
 
         item {
             Panel {

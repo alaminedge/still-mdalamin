@@ -64,7 +64,19 @@ fun ScreenBlock() {
         contentPadding = PaddingValues(20.dp, 12.dp, 20.dp, 32.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item { Header("Focus", "Choose what to block, and when.") }
+        item {
+            val now = Store.activeFocus()
+            val n = Store.schedules.count { it.on }
+            Header(
+                "Focus", "Choose what to block, and when.",
+                chip = when {
+                    now != null -> "Focus on"
+                    n > 0 -> "$n schedule" + if (n == 1) "" else "s"
+                    else -> "No schedule"
+                },
+                chipActive = now != null
+            )
+        }
         item { SectionLabel("Focus hours") }
         items(Store.schedules, key = { it.id }) { s ->
             ScheduleCard(s) { start -> picking = s.id to start }
@@ -93,6 +105,9 @@ fun ScreenBlock() {
                     unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                 )
             )
+        }
+        if (apps.isEmpty() && !Apps.loaded) {
+            items(8) { SkeletonRow() }
         }
         items(shown, key = { it.pkg }) { a ->
             val mode = Store.modes[a.pkg] ?: 0

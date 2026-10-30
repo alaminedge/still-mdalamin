@@ -4,6 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -45,6 +47,7 @@ private data class Tab(val label: String, val icon: ImageVector)
 fun Root() {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var tick by remember { mutableIntStateOf(0) }
+    val animOn = animationsOn()
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { Apps.refresh(); tick++ }
     val tabs = listOf(
         Tab("Today", Icons.Default.DateRange),
@@ -68,11 +71,17 @@ fun Root() {
         }
     ) { pad ->
         Box(Modifier.fillMaxSize().padding(pad).statusBarsPadding()) {
-            when (tab) {
-                0 -> ScreenToday(tick)
-                1 -> ScreenBlock()
-                2 -> ScreenLauncher(tick)
-                else -> ScreenMore(tick)
+            Crossfade(
+                targetState = tab,
+                animationSpec = tween(if (animOn) 200 else 0),
+                label = "tabs"
+            ) { t ->
+                when (t) {
+                    0 -> ScreenToday(tick)
+                    1 -> ScreenBlock()
+                    2 -> ScreenLauncher(tick)
+                    else -> ScreenMore(tick)
+                }
             }
         }
     }

@@ -55,7 +55,13 @@ fun ScreenLauncher(tick: Int) {
         contentPadding = PaddingValues(20.dp, 12.dp, 20.dp, 32.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item { Header("Minimal home", "Only what you need, nothing that pulls you in.") }
+        item {
+            Header(
+                "Minimal home", "Only what you need, nothing that pulls you in.",
+                chip = if (pinned > 0) "$pinned on home" else "Nothing pinned",
+                chipActive = pinned > 0
+            )
+        }
         item {
             Panel {
                 Text(
@@ -101,6 +107,9 @@ fun ScreenLauncher(tick: Int) {
                     unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                 )
             )
+        }
+        if (apps.isEmpty() && !Apps.loaded) {
+            items(8) { SkeletonRow() }
         }
         items(shown, key = { it.pkg }) { a ->
             val m = Store.home[a.pkg] ?: 0

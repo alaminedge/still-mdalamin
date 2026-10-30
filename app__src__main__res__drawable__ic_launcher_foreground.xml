@@ -3,18 +3,30 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <!-- faint full ring -->
     <path
         android:fillColor="#00000000"
-        android:pathData="M54,24 a30,30 0 1,1 0,60 a30,30 0 1,1 0,-60"
-        android:strokeAlpha="0.35"
-        android:strokeColor="#7DD3A8"
-        android:strokeWidth="2.5" />
-    <path
-        android:fillColor="#00000000"
-        android:pathData="M54,36 a18,18 0 1,1 0,36 a18,18 0 1,1 0,-36"
+        android:pathData="M54,26 a28,28 0 1,1 0,56 a28,28 0 1,1 0,-56"
+        android:strokeAlpha="0.22"
         android:strokeColor="#7DD3A8"
         android:strokeWidth="3.5" />
+    <!-- progress ring with a gap -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M76.94,37.94 A28,28 0 1,1 56.44,26.11"
+        android:strokeColor="#7DD3A8"
+        android:strokeLineCap="round"
+        android:strokeWidth="4.5" />
+    <!-- the still point, resting in the gap -->
     <path
         android:fillColor="#7DD3A8"
-        android:pathData="M54,48 a6,6 0 1,1 0,12 a6,6 0 1,1 0,-12" />
+        android:pathData="M68,27.15 a2.6,2.6 0 1,1 0,5.2 a2.6,2.6 0 1,1 0,-5.2" />
+    <!-- S drawn as one continuous wave -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M60.13,40.86 A8,8 0 1,0 54,54 A8,8 0 1,1 47.87,67.14"
+        android:strokeColor="#7DD3A8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="4.5" />
 </vector>
