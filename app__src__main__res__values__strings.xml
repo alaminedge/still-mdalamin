@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">STILL</string>
+    <string name="a11y_desc">STILL uses this service only to notice which app is open, so it can stop the apps you chose to block. It does not read, store or send what is on your screen.</string>
+</resources>
