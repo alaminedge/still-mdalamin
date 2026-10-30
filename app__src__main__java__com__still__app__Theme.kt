@@ -1,15 +1,19 @@
 package com.still.app
 
+import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
 
 private val DarkScheme = darkColorScheme(
     primary = Color(0xFF7DD3A8), onPrimary = Color(0xFF06150E),
@@ -52,8 +56,22 @@ private val StillType = Typography().copy(
 
 @Composable
 fun StillTheme(content: @Composable () -> Unit) {
+    val dark = when (Store.themeMode) {
+        1 -> false
+        2 -> true
+        else -> isSystemInDarkTheme()
+    }
+    val view = LocalView.current
+    SideEffect {
+        val w = (view.context as? Activity)?.window
+        if (w != null) {
+            val ctl = WindowCompat.getInsetsController(w, view)
+            ctl.isAppearanceLightStatusBars = !dark
+            ctl.isAppearanceLightNavigationBars = !dark
+        }
+    }
     MaterialTheme(
-        colorScheme = if (isSystemInDarkTheme()) DarkScheme else LightScheme,
+        colorScheme = if (dark) DarkScheme else LightScheme,
         typography = StillType,
         content = content
     )

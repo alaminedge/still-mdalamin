@@ -36,6 +36,9 @@ object Store {
     val bgApps = mutableStateListOf<String>()
     var hardcoreUntil by mutableLongStateOf(0L)
         private set
+    /** 0 = follow system, 1 = light, 2 = dark */
+    var themeMode by mutableIntStateOf(0)
+        private set
     /** total phone limit per day, in minutes (0 = none) */
     var totalLimit by mutableIntStateOf(0)
         private set
@@ -61,6 +64,7 @@ object Store {
         for (i in 0 until b.length()) bgApps.add(b.getString(i))
         hardcoreUntil = p.getLong("hc", 0L)
         totalLimit = p.getInt("tl", 0)
+        themeMode = p.getInt("theme", 0)
         emDay = p.getLong("emDay", 0L)
         emUsed = p.getInt("emUsed", 0)
     }
@@ -91,6 +95,7 @@ object Store {
             ?.putString("bg", b.toString())
             ?.putLong("hc", hardcoreUntil)
             ?.putInt("tl", totalLimit)
+            ?.putInt("theme", themeMode)
             ?.putLong("emDay", emDay)
             ?.putInt("emUsed", emUsed)
             ?.apply()
@@ -98,6 +103,11 @@ object Store {
 
     // ---------- Hardcore ----------
     fun hardcoreOn() = hardcoreUntil > System.currentTimeMillis()
+
+    fun setThemeMode(m: Int) {
+        themeMode = m.coerceIn(0, 2)
+        save()
+    }
 
     fun hardcoreLeftMs() = (hardcoreUntil - System.currentTimeMillis()).coerceAtLeast(0L)
 

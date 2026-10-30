@@ -35,6 +35,11 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun ScreenMore(tick: Int) {
     val c = LocalContext.current
+    var guide by remember { mutableStateOf(false) }
+    if (guide) {
+        ScreenGuide { guide = false }
+        return
+    }
     val apps = rememberApps(tick)
     val hc = Store.hardcoreOn()
     var days by remember { mutableIntStateOf(3) }
@@ -53,6 +58,34 @@ fun ScreenMore(tick: Int) {
                 chip = if (hc) "Hardcore ${fmtLeft(Store.hardcoreLeftMs())}" else "Hardcore off",
                 chipActive = hc
             )
+        }
+
+        item {
+            Panel(Modifier.pressClickable { guide = true }) {
+                Text("Guide", style = MaterialTheme.typography.titleLarge)
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    "How STILL works, what each setting does, privacy, and fixes for common problems.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.height(8.dp))
+                Text("Open guide  ›", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+            }
+        }
+
+        item {
+            Panel {
+                Text("Appearance", style = MaterialTheme.typography.titleLarge)
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    "System follows your phone's light or dark setting.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.height(12.dp))
+                Segmented(listOf("System", "Light", "Dark"), Store.themeMode) { Store.setThemeMode(it) }
+            }
         }
 
         item {
@@ -146,16 +179,7 @@ fun ScreenMore(tick: Int) {
             }
         }
 
-        item {
-            Column(Modifier.padding(top = 8.dp)) {
-                Text("STILL 1.0", style = MaterialTheme.typography.titleMedium)
-                Text(
-                    "Use your phone. Don't let it use you.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
+        item { AboutCard() }
     }
 
     if (confirm) {
